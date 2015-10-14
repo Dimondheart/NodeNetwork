@@ -1,22 +1,27 @@
 class FullNodeGrid(Exception):
-    def __init__(self):
-        pass
+    ''' Exception raised when attempting to add a node to a full node grid. '''
+    def __init__(self, ng = None):
+        ''' ng: Specify the the full node grid normally. '''
+        self.ngf = ng
         
     def __str__(self):
-        return "The specified node grid is completely full."
+        if self.ngf is None:
+            return "Cannot add a node to a full node grid."
+        else:
+            return "Cannot add a node to full node grid '{}'.".format(self.ngf)
 
 
-class Storage(object):
-    ''' Handles the collection of nodes. '''
+class NodeNetwork(object):
+    ''' Handles a collection of nodes in a grid. '''
+    # TODO: Make new nodes more likely to make new connections
     
-    def __init__(self):
+    def __init__(self, d1=21, d2=21):
         ''' Initialize stuff like the node grid. '''
-        self.node_grid = [[None for y in xrange(0,21)] for x in xrange(0,21)]
+        self.node_grid = [[None for b in xrange(0,d2)] for a in xrange(0,d1)]
         # Create a root node at the center of the grid
-        center_x = (len(self.node_grid)-1) / 2
-        center_y = (len(self.node_grid[0])-1) / 2
-        self.node_grid[center_x][center_y] = Node(None)
-        
+        center_d1 = (d1-1) / 2
+        center_d2 = (d2-1) / 2
+        self.node_grid[center_d1][center_d2] = Node(None)
         
     def add_node(self, root_node, new_node):
         '''Adds a new node as close as possible to the root node. '''
@@ -28,13 +33,12 @@ class Storage(object):
                 if self.node_grid[x][y] is None:
                     self.node_grid[x][y] = new_node
                     return
-        raise FullNodeGrid
-            
-            
+        # No empty node found, raise exception
+        raise FullNodeGrid(self)
 
 
 class Node(object):
-    ''' A single node in the node network. '''
+    ''' A single node in a node network. '''
     # Other nodes this node is connected to
     connections = []
     
@@ -46,6 +50,7 @@ class Node(object):
         self.connections.append(node_creator)
         
     def create_node(self):
+        ''' Create a new node off of this one. '''
         pass
         
         
