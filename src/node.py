@@ -2,20 +2,18 @@ import nodenetwork
 
 class Node(object):
     ''' A single node in a node network. '''
-    # Other nodes this node is connected to
-    connections = []
-    my_net = None
     
     def __init__(self, creator):
         ''' Initialize this node.
         One initalize operation is to add creating node as a connected node.
         '''
+        self.connections = []
         # Normal new node initializing
         if isinstance(creator, Node):
             # What network this node is part of
             self.my_net = getattr(creator, "my_net")
             # Add the parent node as a connected node
-            self.connections.append(creator)
+            self.add_connection(creator)
         # NodeNetwork main root node initializing
         elif isinstance(creator, nodenetwork.NodeNetwork):
             self.my_net = creator
@@ -27,7 +25,10 @@ class Node(object):
         ''' Create a new node off of this one. '''
         new_node = Node(self)
         self.my_net.add_node(self, new_node)
-        self.connections.append(new_node)
+        self.add_connection(new_node)
+
+    def add_connection(self, node):
+        self.connections.append(node)
 
 
 class UnknownNodeCreator(Exception):
