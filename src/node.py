@@ -26,6 +26,8 @@ class Node(object):
         new_node = Node(self)
         self.my_net.add_node(self, new_node)
         self.add_connection(new_node)
+        # Return the new node so the create requestor can use it
+        return new_node
 
     def add_connection(self, node):
         self.connections.append(node)

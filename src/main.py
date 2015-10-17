@@ -1,5 +1,6 @@
 import sys
 import traceback
+import string
 
 import nodenetwork
 
@@ -7,7 +8,8 @@ import nodenetwork
 class Main(object):
     ''' Program entry point. '''
     def __init__(self):
-        self.node_net = nodenetwork.NodeNetwork(9,9)
+        self.node_net = nodenetwork.NodeNetwork(5,9)
+        self.dev_cmds = DevCommand(self)
 
     def start(self):
         ''' Start running the main loop. '''
@@ -24,17 +26,21 @@ class Main(object):
             # Non-python code commands ("developer commands")
             # TODO: Handle these more generically
             elif cmd[0] == "@":
+                # TODO: Utilize new DevCommand class here
                 dev_cmd = cmd[1:].strip()
                 # Print out all commands plus help info
                 if len(dev_cmd) == 0 or dev_cmd == "cmds":
-                    # TODO: print out dev cmds here
                     print(
                         "@ : List all dev commands",
                         "@cmds : List all dev commands",
                         "@quit : Currently equivalent to 'sys.exit()'",
                         "@help : Display generic help info",
-                        "@mknode num=# : Make <num> new nodes with main node as root",
-                        "\t<num> default: 1",
+                        "@mknode num=# mode='': Make some new nodes",
+                        "   <num> number of new nodes",
+                        "   <mode> 'oneroot' or 'chain'",
+                        "      ~oneroot : all new nodes stem from root",
+                        "      ~chain : each node stems from previous node",
+                        "@nodeat x=# y=# : Print the node object located at (x,y)",
                         "@u : Equivalent to 'self.display_stuff()'",
                         sep='\n'
                         )
@@ -54,15 +60,42 @@ class Main(object):
                 elif dev_cmd[:len("mknode")] == "mknode":
                     args = dev_cmd[len("mknode")+1:].split(' ')
                     num = 1
-                    # TODO: Be able to specify the root node
+                    mode = "oneroot"
+                    root = getattr(self.node_net, "main_root_node")
+                    # Process arguments
                     for arg in args:
                         if "num" in arg:
-                            num = int(arg.split('=')[1])
-                    for n in range(num):
-                        getattr(self.node_net, "main_root_node").create_node()
+                            num = int(arg.split('=')[1].strip().replace(',', ''))
+                        elif "mode" in arg:
+                            mode = arg.split('=')[1].strip()
+                        elif "rootpos" in arg:
+                            coords_str = arg.split('=')[1].strip().split(',')
+                            x, y = [int(c.strip()) for c in coords_str]
+                            print(x, ',', y)
+                            # root = getattr(self.node_net, "node_grid")[x][y]
+                    if mode == "oneroot":
+                        for n in range(num):
+                            root.create_node()
+                    elif mode == "chain":
+                        for n in range(num):
+                            root = root.create_node()
+                    else:
+                        print("Invalid @mknode <mode> specified.")
                 # Shortcut for updating everything
                 elif dev_cmd == "u":
                     self.display_stuff()
+                elif dev_cmd[:len("nodeat")] == "nodeat":
+                    args = dev_cmd[len("mknode")+1:].split(' ')
+                    x = 0
+                    y = 0
+                    for arg in args:
+                        av_pair = [av.strip().replace(',','') for av in arg.split('=')]
+                        if av_pair[0] == "x":
+                            x = int(av_pair[1])
+                        elif av_pair[0] == "y":
+                            y = int(av_pair[1])
+                    print(getattr(self.node_net, "node_grid")[x][y])
+
                 # Invalid dev command
                 else:
                     print(
@@ -94,15 +127,59 @@ class Main(object):
         print("\n-----", title, "-----\n", sep='', end='')
 
 
-class InvalidNodeCreator(object):
-    ''' Just used to test the UnknownNodeCreator exception. '''
-    
-    def __init__(self):
-        pass
-        
-    def cbn(self):
+class DevCommand(object):
+    ''' Class for processing a developer command. '''
 
-        badnode = Node(self)
+    # Character that indicates a dev command
+    dev_cmd_marker = "@"
+    # A Template dev command to use for all commands
+    template_cmd = {
+        "aliases" : [],
+        "helpsummary" : "",
+        "args" : [],
+        "arghelp" : []
+        }
+    # Lists all the commands
+    listcmds = {
+        "aliases" : ["cmds", ""],
+        "helpsummary" : "List all dev commands",
+        "args" : None,
+        "arghelp" : None
+        }
+    # Exit the program
+    # quit = ("quit")
+    # Print out general help info
+    # generalhelp = ("help")
+    # Create one or more nodes
+    mknode = {
+        "aliases" : ["mknode"],
+        "helpsummary" : "Make some new nodes",
+        "args" : ["num", "mode"],
+        "arghelp" : [
+            "Number of new nodes to make",
+            "'oneroot' or 'chain'\n" +
+            "   ~oneroot : all new nodes stem from root\n" +
+            "   ~chain : each node stems from previous node\n"
+            ]
+        }
+    # Print out the object in the node grid at specified position
+    # nodeat = ("nodeat")
+    # Print out a bunch of useful data to the terminal
+    # displaydata = ("u")
+    # Clear the main node network
+    # reset = ("reset")
+
+    def __init__(self, creator):
+        self.creator = creator
+
+    def parse_cmd(self, dev_cmd):
+        parsed = dev_cmd.split(' ')
+        parsed = [piece.strip() for piece in parsed[:] if piece not in string.whitespace]
+        return parsed[0], parsed[1:]
+
+    def do_cmd(self, dev_cmd):
+        cmd, args = parse_cmd(dev_cmd)
+        print(cmd, args)
 
 
 m = Main()
