@@ -10,9 +10,4 @@ A method for storing and processing data (details below the images).
 
 ![nodenetwork-sample2-4](https://cloud.githubusercontent.com/assets/7505459/10561534/3441790e-74f2-11e5-97cf-f8f8f91150ec.png)
 
-This method uses nodes and connections between nodes, similar to a linked list.  However there are important differences between Nodes with Node Networks and linked lists, including:
-
-- Nodes can form complex networks of links that would be impractical in a regular linked list
-- Node Networks provide a mix of linked-list-like and grid/array-like behavior
-- Nodes and Node Networks are designed to be processed as a complex web of data and algorithms, vs a linked list or grid/array which are geared more towards storing data that can be accessed or iterated over
-	- Currently cannot do any processing on them, the framework is still early in development
+This was my earlier experimentation with setting up a neural network, before I learned that this idea already existed.  I will probably still use this for experimenting around with neural networks.
